@@ -23,7 +23,6 @@ router.post('/upload', cloudinaryUpload.single('file'), async (req, res) => {
       return res.status(400).json({ message: 'No se envió ningún archivo' });
     }
 
-    // Subida del archivo a Cloudinary
     const stream = cloudinary.uploader.upload_stream({}, (error, result) => {
       if (error) {
         console.error(error);
@@ -43,10 +42,10 @@ router.post('/upload', cloudinaryUpload.single('file'), async (req, res) => {
 export default router;
 
 // Configuración de multer para almacenamiento interno
-const upload = multer({
+const uploadInternal = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB
+    fileSize: 50 * 1024 * 1024,
   },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
@@ -151,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post(
     "/api/media/upload",
-    upload.array("media"),
+    uploadInternal.array("media"),
     async (req: Request, res: Response) => {
       try {
         if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
@@ -230,3 +229,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+
