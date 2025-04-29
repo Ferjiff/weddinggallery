@@ -23,6 +23,51 @@
         font-family: 'Nunito Sans', sans-serif;
         background-color: var(--neutral-cream);
         color: var(--neutral-dark);
+        <form id="uploadForm">
+  <input type="file" id="fileInput" />
+  <button type="submit">Subir</button>
+</form>
+
+<div id="result"></div>
+        <script>
+  document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert("Por favor selecciona un archivo.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = "Subiendo archivo...";
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        resultDiv.innerHTML = `
+          <p>✅ Archivo subido: <a href="${data.url}" target="_blank">${data.url}</a></p>
+        `;
+      } else {
+        resultDiv.innerHTML = "❌ Error al subir el archivo.";
+      }
+    } catch (error) {
+      resultDiv.innerHTML = "❌ Hubo un error al conectarse con el servidor.";
+    }
+  });
+</script>
+
       }
       h1, h2, h3, h4, h5, h6 {
         font-family: 'Cormorant Garamond', serif;
