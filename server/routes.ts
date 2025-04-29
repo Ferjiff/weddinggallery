@@ -6,6 +6,44 @@ import { z } from "zod";
 import { insertMediaSchema } from "@shared/schema";
 import path from "path";
 import crypto from "crypto";
+import { Router } from 'express';
+import multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
+
+const router = Router();
+
+// Configuración de multer
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// Ruta para subir un archivo
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: 'No se envió ningún archivo' });
+    }
+
+    // Subida del archivo a Cloudinary
+    const stream = cloudinary.uploader.upload_stream({}, (error, result) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Error subiendo el archivo' });
+      }
+      res.json({ url: result?.secure_url });
+    });
+
+    stream.end(file.buffer);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+export default router;
+
 
 // Configure multer for in-memory storage
 const upload = multer({
