@@ -45,6 +45,47 @@ app.use((req, res, next) => {
 
   next();
 });
+// Configurar multer para manejar archivos
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// Ruta para subir imágenes
+const router = express.Router();
+
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se encontró el archivo' });
+    }
+
+    const result = await cloudinary.uploader.upload_stream(
+      { resource_type: 'auto' },
+      (error, result) => {
+        if (error) {
+          console.error('Error al subir a Cloudinary:', error);
+          return res.status(500).json({ error: 'Error al subir archivo' });
+        }
+
+        if (result) {
+          return res.status(200).json({ url: result.secure_url });
+        }
+      }
+    );
+
+    if (result && req.file) {
+      // Aquí conectamos el stream
+      const stream = result;
+      stream.end(req.file.buffer);
+    }
+  } catch (error) {
+    console.error('Error en el servidor:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+// Asegúrate de agregar este router al app principal
+app.use('/api', router);
+
 
 (async () => {
   const server = await registerRoutes(app);
