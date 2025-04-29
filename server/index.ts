@@ -1,6 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: 'duymkrdbb',
+  api_key: '386814429216381',
+  api_secret: 'v-dJz5uqg6gGpQ6A-fkv4CdMunc'
+});
+
 
 const app = express();
 app.use(express.json());
@@ -67,11 +75,4 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
   });
-  const cloudinary = require('cloudinary').v2;
-
-cloudinary.config({
-  cloud_name: 'TU_CLOUD_NAME',
-  api_key: 'TU_API_KEY',
-  api_secret: 'TU_API_SECRET'
-});
 })();
