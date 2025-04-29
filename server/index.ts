@@ -4,9 +4,9 @@ import { setupVite, serveStatic, log } from "./vite";
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
-  cloud_name: 'duymkrdbb',
-  api_key: '386814429216381',
-  api_secret: 'v-dJz5uqg6gGpQ6A-fkv4CdMunc'
+  cloud_name: 'process.env.CLOUDINARY_CLOUD_NAME',
+  api_key: 'process.env.CLOUDINARY_API_KEY',
+  api_secret: 'process.env.CLOUDINARY_API_SECRET'
 });
 
 
