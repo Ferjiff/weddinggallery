@@ -4,17 +4,18 @@ import { setupVite, serveStatic, log } from "./vite";
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
 import router from './routes';
-app.use('/api', router);
+
 
 
 cloudinary.config({
-  cloud_name: 'process.env.CLOUDINARY_CLOUD_NAME',
-  api_key: 'process.env.CLOUDINARY_API_KEY',
-  api_secret: 'process.env.CLOUDINARY_API_SECRET'
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 
 const app = express();
+app.use('/api', router);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
