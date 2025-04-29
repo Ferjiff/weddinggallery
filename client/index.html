@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Nunito+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    
     <style>
       :root {
         --brown-light: #A67C52;
@@ -23,59 +24,64 @@
         font-family: 'Nunito Sans', sans-serif;
         background-color: var(--neutral-cream);
         color: var(--neutral-dark);
-        <form id="uploadForm">
-  <input type="file" id="fileInput" />
-  <button type="submit">Subir</button>
-</form>
-
-<div id="result"></div>
-        <script>
-  document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
-
-    if (!file) {
-      alert("Por favor selecciona un archivo.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const resultDiv = document.getElementById('result');
-    resultDiv.innerHTML = "Subiendo archivo...";
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      const data = await response.json();
-
-      if (data.url) {
-        resultDiv.innerHTML = `
-          <p>✅ Archivo subido: <a href="${data.url}" target="_blank">${data.url}</a></p>
-        `;
-      } else {
-        resultDiv.innerHTML = "❌ Error al subir el archivo.";
-      }
-    } catch (error) {
-      resultDiv.innerHTML = "❌ Hubo un error al conectarse con el servidor.";
-    }
-  });
-</script>
-
       }
       h1, h2, h3, h4, h5, h6 {
         font-family: 'Cormorant Garamond', serif;
       }
     </style>
   </head>
+  
   <body>
     <div id="root"></div>
+
+    <!-- FORMULARIO DE SUBIDA -->
+    <form id="uploadForm">
+      <input type="file" id="fileInput" />
+      <button type="submit">Subir</button>
+    </form>
+
+    <div id="result"></div>
+
+    <!-- SCRIPT PARA SUBIR ARCHIVO -->
+    <script>
+      document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (!file) {
+          alert("Por favor selecciona un archivo.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = "Subiendo archivo...";
+
+        try {
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (data.url) {
+            resultDiv.innerHTML = `
+              <p>✅ Archivo subido: <a href="${data.url}" target="_blank">${data.url}</a></p>
+            `;
+          } else {
+            resultDiv.innerHTML = "❌ Error al subir el archivo.";
+          }
+        } catch (error) {
+          resultDiv.innerHTML = "❌ Hubo un error al conectarse con el servidor.";
+        }
+      });
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
