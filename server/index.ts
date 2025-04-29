@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { v2 as cloudinary } from 'cloudinary';
+import multer from 'multer';
+
 
 cloudinary.config({
   cloud_name: 'process.env.CLOUDINARY_CLOUD_NAME',
