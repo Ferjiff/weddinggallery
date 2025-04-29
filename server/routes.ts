@@ -7,17 +7,15 @@ import { insertMediaSchema } from "@shared/schema";
 import path from "path";
 import crypto from "crypto";
 import { Router } from 'express';
-import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 
 const router = Router();
 
-// Configuración de multer
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+// Configuración de multer para Cloudinary
+const cloudinaryUpload = multer({ storage: multer.memoryStorage() });
 
-// Ruta para subir un archivo
-router.post('/upload', upload.single('file'), async (req, res) => {
+// Ruta para subir un archivo a Cloudinary
+router.post('/upload', cloudinaryUpload.single('file'), async (req, res) => {
   try {
     const file = req.file;
 
@@ -44,15 +42,13 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
 export default router;
 
-
-// Configure multer for in-memory storage
+// Configuración de multer para almacenamiento interno
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    fileSize: 50 * 1024 * 1024, // 50MB
   },
   fileFilter: (_req, file, cb) => {
-    // Accept only images and videos
     if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
       cb(null, true);
     } else {
@@ -62,7 +58,6 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get all media files
   app.get("/api/media", async (_req: Request, res: Response) => {
     try {
       const media = await storage.getAllMedia();
@@ -73,7 +68,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get a specific media file
   app.get("/api/media/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
@@ -86,9 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Media not found" });
       }
 
-      // Set appropriate content type
       res.setHeader("Content-Type", mediaData.mediaInfo.fileType);
-      // Send the file data
       return res.send(mediaData.data);
     } catch (error) {
       console.error("Error serving media:", error);
@@ -96,7 +88,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download a media file with attachment disposition
   app.get("/api/media/:id/download", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
@@ -109,13 +100,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Media not found" });
       }
 
-      // Set headers for download
       res.setHeader("Content-Type", mediaData.mediaInfo.fileType);
       res.setHeader(
         "Content-Disposition",
         `attachment; filename="${mediaData.mediaInfo.fileName}"`
       );
-      // Send the file
       return res.send(mediaData.data);
     } catch (error) {
       console.error("Error downloading media:", error);
@@ -123,7 +112,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get a thumbnail for video files
   app.get("/api/media/:id/thumbnail", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
@@ -136,10 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Media not found" });
       }
 
-      // For videos, we'll use a placeholder thumbnail
-      // In a production app, you would generate actual thumbnails from videos
       if (mediaInfo.fileType.startsWith("video/")) {
-        // Respond with a placeholder image
         res.setHeader("Content-Type", "image/svg+xml");
         const placeholderSvg = `
           <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
@@ -151,7 +136,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `;
         return res.send(placeholderSvg);
       } else {
-        // If it's not a video, just serve the image directly
         const mediaData = await storage.getMediaFile(id);
         if (!mediaData) {
           return res.status(404).json({ message: "Media file not found" });
@@ -165,7 +149,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload media files
   app.post(
     "/api/media/upload",
     upload.array("media"),
@@ -179,7 +162,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const uploadResults = [];
 
         for (const file of uploadedFiles) {
-          // Create a media record
           const mediaData = {
             fileName: file.originalname,
             fileType: file.mimetype,
@@ -191,10 +173,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           try {
-            // Validate the media data
             insertMediaSchema.parse(mediaData);
 
-            // Store the media file
             const mediaRecord = await storage.createMedia(
               mediaData,
               file.buffer
@@ -228,7 +208,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Delete a media file
   app.delete("/api/media/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
