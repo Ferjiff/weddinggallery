@@ -3,6 +3,8 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
+import router from './routes';
+app.use('/api', router);
 
 
 cloudinary.config({
