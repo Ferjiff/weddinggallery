@@ -161,17 +161,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uploadResults = [];
 
       for (const file of uploadedFiles) {
-        const mediaData = {
-          fileName: file.originalname,
-          fileType: file.mimetype,
-          fileSize: file.size,
-          uploadDate: new Date().toISOString(),
-          metadata: {
-            originalName: file.originalname,
-          },
-        };
-
         try {
+          const mediaData = {
+            fileName: file.originalname,
+            fileType: file.mimetype,
+            fileSize: file.size,
+            uploadDate: new Date().toISOString(),
+            metadata: {
+              originalName: file.originalname,
+            },
+          };
+
           insertMediaSchema.parse(mediaData);
 
           // ✅ Subir a Cloudinary
@@ -201,12 +201,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             cloudinaryUrl,
             status: "success",
           });
-        } catch (error) {
-          console.error("Error processing file:", file.originalname, error);
+        } catch (fileError) {
+          console.error("Error processing file:", file.originalname, fileError);
           uploadResults.push({
             fileName: file.originalname,
             status: "error",
-            message: error instanceof Error ? error.message : "Unknown error",
+            message: fileError instanceof Error ? fileError.message : "Unknown error",
           });
         }
       }
@@ -224,20 +224,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 );
-
-        return res.status(201).json({
-          message: "Files processed",
-          results: uploadResults,
-        });
-      } catch (error) {
-        console.error("Error uploading files:", error);
-        return res.status(500).json({
-          message: "Failed to process uploaded files",
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
-      }
-    }
-  );
 
   app.delete("/api/media/:id", async (req: Request, res: Response) => {
     try {
