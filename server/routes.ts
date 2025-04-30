@@ -149,49 +149,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post(
-    "/api/media/upload",
-    uploadInternal.array("media"),
-    async (req: Request, res: Response) => {
-      try {
-        if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
-          return res.status(400).json({ message: "No files uploaded" });
-        }
+  "/api/media/upload",
+  uploadInternal.array("media"),
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+        return res.status(400).json({ message: "No files uploaded" });
+      }
 
-        const uploadedFiles = req.files as Express.Multer.File[];
-        const uploadResults = [];
+      const uploadedFiles = req.files as Express.Multer.File[];
+      const uploadResults = [];
 
-        for (const file of uploadedFiles) {
-          const mediaData = {
-            fileName: file.originalname,
-            fileType: file.mimetype,
-            fileSize: file.size,
-            uploadDate: new Date().toISOString(),
-            metadata: {
-              originalName: file.originalname,
-            },
-          };
+      for (const file of uploadedFiles) {
+        const mediaData = {
+          fileName: file.originalname,
+          fileType: file.mimetype,
+          fileSize: file.size,
+          uploadDate: new Date().toISOString(),
+          metadata: {
+            originalName: file.originalname,
+          },
+        };
 
-          try {
-            insertMediaSchema.parse(mediaData);
+        try {
+          insertMediaSchema.parse(mediaData);
 
-            const mediaRecord = await storage.createMedia(
-              mediaData,
-              file.buffer
+          // ✅ Subir a Cloudinary
+          const cloudinaryUrl = await new Promise<string>((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+              { resource_type: "auto" },
+              (error, result) => {
+                if (error || !result) {
+                  reject(error || new Error("No result from Cloudinary"));
+                } else {
+                  resolve(result.secure_url);
+                }
+              }
             );
-            uploadResults.push({
-              id: mediaRecord.id,
-              fileName: mediaRecord.fileName,
-              status: "success",
-            });
-          } catch (error) {
-            console.error("Error processing file:", file.originalname, error);
-            uploadResults.push({
-              fileName: file.originalname,
-              status: "error",
-              message: error instanceof Error ? error.message : "Unknown error",
-            });
-          }
+            stream.end(file.buffer);
+          });
+
+          // ✅ Agregar la URL de Cloudinary en los metadatos
+          mediaData.metadata.cloudinaryUrl = cloudinaryUrl;
+
+          // ✅ Guardar también en almacenamiento local
+          const mediaRecord = await storage.createMedia(mediaData, file.buffer);
+
+          uploadResults.push({
+            id: mediaRecord.id,
+            fileName: mediaRecord.fileName,
+            cloudinaryUrl,
+            status: "success",
+          });
+        } catch (error) {
+          console.error("Error processing file:", file.originalname, error);
+          uploadResults.push({
+            fileName: file.originalname,
+            status: "error",
+            message: error instanceof Error ? error.message : "Unknown error",
+          });
         }
+      }
+
+      return res.status(201).json({
+        message: "Files processed",
+        results: uploadResults,
+      });
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      return res.status(500).json({
+        message: "Failed to process uploaded files",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+);
 
         return res.status(201).json({
           message: "Files processed",
