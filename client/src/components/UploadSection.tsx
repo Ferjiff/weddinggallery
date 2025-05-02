@@ -42,10 +42,13 @@ export default function UploadSection({ isVisible, onCancel }: UploadSectionProp
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFiles([e.target.files[0]]);
-    }
-  };
+  if (e.target.files && e.target.files.length > 0) {
+    const selectedFiles = Array.from(e.target.files).filter(file =>
+      file.type.startsWith("image/") || file.type.startsWith("video/")
+    );
+    setFiles(selectedFiles);
+  }
+};
 
   const handleUpload = async () => {
     if (files.length === 0) {
