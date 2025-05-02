@@ -134,7 +134,7 @@ export default function UploadSection({ isVisible, onCancel }: UploadSectionProp
               {/* 👇 Eliminamos capture="environment" para que el menú nativo se muestre */}
               <input
                 type="file"
-                accept="image/*,video/*"
+                accept="*/*"
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handleFileChange}
