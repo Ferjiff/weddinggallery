@@ -139,6 +139,7 @@ export default function UploadSection({ isVisible, onCancel }: UploadSectionProp
                 type="file"
                 accept="*/*"
                 className="hidden"
+                multiple
                 ref={fileInputRef}
                 onChange={handleFileChange}
               />
